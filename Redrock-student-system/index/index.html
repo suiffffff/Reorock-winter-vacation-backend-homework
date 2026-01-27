@@ -96,6 +96,28 @@
 
   <!--主系统-->
   <div id="page-system" class="page-container">
+    <!--注销弹框-->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">注销账户</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>确定要注销账户吗？此操作不可恢复。</p>
+            <div class="mb-3">
+              <label for="delete-password" class="form-label">输入密码确认</label>
+              <input type="password" class="form-control" id="delete-password" placeholder="请输入您的密码">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-danger delete-confirm-btn">确认注销</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- 固定导航栏 -->
     <nav class="navbar">
       <!-- 左侧工具栏 -->
@@ -120,6 +142,15 @@
         <div class="user-info">
           <div class="avatar">U</div>
           <span class="username">用户名</span>
+        </div>
+
+        <!-- 下拉菜单按钮 -->
+        <div class="dropdown">
+          <button class="dropdown-btn">☰</button>
+          <div class="dropdown-menu" id="userDropdown">
+            <button class="dropdown-item system-exit">退出登录</button>
+            <button class="dropdown-item system-delete">注销账户</button>
+          </div>
         </div>
       </div>
     </nav>

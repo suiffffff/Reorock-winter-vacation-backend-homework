@@ -41,122 +41,6 @@ body {
   padding: 0;
 }
 
-/* 固定导航栏样式 */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  z-index: 1000;
-}
-
-/* 左侧工具栏 */
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.toolbar-btn {
-  background: none;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.toolbar-btn:hover {
-  background-color: #f5f5f5;
-}
-
-/* 中间搜索框 */
-.navbar-center {
-  flex: 1;
-  max-width: 400px;
-  margin: 0 40px;
-}
-
-.search-box {
-  width: 100%;
-  position: relative;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px 12px;
-  padding-right: 36px;
-  border: 2px solid #f5f5f5;
-  border-radius: 20px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #000;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-}
-
-.search-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  color: #666;
-}
-
-/* 右侧用户信息 */
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-}
-
-.username {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-}
-
-/* 系统页面内容区域 */
-#page-system {
-  padding-top: 80px;
-  min-height: 100vh;
-}
-
 
 .login-wrapper {
   width: 100%;
@@ -252,4 +136,178 @@ body {
   background-color: #fff;
   color: #000;
   transform: scale(0.98);
+}
+
+/* 固定导航栏样式 */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 1000;
+}
+
+/* 左侧工具栏 */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.toolbar-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.toolbar-btn:hover {
+  background-color: #f5f5f5;
+}
+
+/* 中间搜索框 */
+.navbar-center {
+  flex: 1;
+  max-width: 400px;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.search-box {
+  width: 100%;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  padding-right: 36px;
+  border: 2px solid #f5f5f5;
+  border-radius: 20px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 右侧用户信息 */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 下拉菜单样式 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.dropdown-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  min-width: 120px;
+  padding: 8px 0;
+  display: none;
+  z-index: 1001;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* 系统页面内容区域 */
+#page-system {
+  padding-top: 80px;
+  min-height: 100vh;
 }
