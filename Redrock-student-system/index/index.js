@@ -314,7 +314,8 @@ function setupRegister() {
 
 function setupSystem() {
 
-  document.querySelector('.dropdown-btn').addEventListener('click', (e) => {
+  const dropdownBtn = document.querySelector('.dropdown-btn')
+  dropdownBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const dropdownMenu = document.getElementById('userDropdown')
     dropdownMenu.classList.toggle('show');
@@ -327,6 +328,190 @@ function setupSystem() {
       dropdownMenu.classList.remove('show')
     }
   });
+
+  // 导航栏切换
+  const toolbarBtns = document.querySelectorAll('.toolbar-btn')
+  toolbarBtns.forEach((btn, index) => {
+    btn.addEventListener('click', () => {
+      const contentSections = document.querySelectorAll('.content-section')
+      contentSections.forEach(section => section.classList.add('hidden'))
+
+      if (index === 0) {
+        // 首页
+        document.getElementById('content-home').classList.remove('hidden')
+      } else if (index === 1) {
+        // 作业
+        document.getElementById('content-homework').classList.remove('hidden')
+      }
+    })
+  })
+
+  // 筛选表单收起/展开
+  const toggleFilter = document.querySelector('.toggle-filter')
+  if (toggleFilter) {
+    toggleFilter.addEventListener('click', () => {
+      const filterSidebar = document.querySelector('.filter-sidebar')
+      const filterForm = document.querySelector('.filter-form')
+      const filterTitle = document.querySelector('.filter-header h4')
+
+      filterSidebar.classList.toggle('collapsed')
+
+      if (filterSidebar.classList.contains('collapsed')) {
+        if (filterForm) filterForm.style.display = 'none'
+        if (filterTitle) filterTitle.style.display = 'none'
+        toggleFilter.textContent = '≡'
+      } else {
+        if (filterForm) filterForm.style.display = 'block'
+        if (filterTitle) filterTitle.style.display = 'block'
+        toggleFilter.textContent = '≡'
+      }
+    })
+  }
+
+  // 增加作业表单处理
+  const addHomeworkForm = document.getElementById('addHomeworkForm')
+  if (addHomeworkForm) {
+    addHomeworkForm.addEventListener('submit', async (e) => {
+      e.preventDefault()
+
+      // 表单验证
+      if (!addHomeworkForm.checkValidity()) {
+        e.stopPropagation()
+        addHomeworkForm.classList.add('was-validated')
+        return
+      }
+
+      // 收集表单数据
+      const formData = {
+        title: document.getElementById('homework-title').value,
+        description: document.getElementById('homework-description').value,
+        department: document.getElementById('homework-department').value,
+        deadline: document.getElementById('homework-deadline').value,
+        allow_late: document.getElementById('homework-allow-late').checked
+      }
+
+      try {
+        // 提交到后端API
+        const response = await request('/homework', {
+          method: 'POST',
+          body: JSON.stringify(formData)
+        })
+
+        if (!response.ok) {
+          throw new Error('添加作业失败')
+        }
+
+        const result = await response.json()
+
+        if (result.code === 0) {
+          // 添加成功
+          console.log('添加作业成功:', result)
+          alert('作业添加成功！')
+
+          // 关闭模态弹窗
+          const modal = bootstrap.Modal.getInstance(document.getElementById('addHomeworkModal'))
+          modal.hide()
+
+          // 重置表单
+          addHomeworkForm.reset()
+          addHomeworkForm.classList.remove('was-validated')
+
+          // 这里可以添加刷新作业列表的逻辑
+        } else {
+          // 业务逻辑错误
+          console.log('添加作业失败:', result)
+          alert(result.msg || '添加作业失败')
+        }
+      } catch (error) {
+        // 网络错误或其他错误
+        console.error('添加作业时出错:', error)
+        alert('添加作业时出错，请稍后再试')
+      }
+    })
+  }
+
+  // 聊天功能
+  const chatInput = document.getElementById('chat-input')
+  const sendBtn = document.getElementById('send-btn')
+  const chatMessages = document.getElementById('chat-messages')
+  const modelSelect = document.querySelector('.model-select')
+
+  if (chatInput && sendBtn && chatMessages) {
+    // 发送消息函数
+    function sendMessage() {
+      const message = chatInput.value.trim()
+      if (!message) return
+
+      const selectedModel = modelSelect.value || 'pro'
+
+      // 添加用户消息
+      addMessage('user', message)
+
+      // 清空输入框
+      chatInput.value = ''
+
+      // 模拟AI回复
+      setTimeout(() => {
+        let reply = ''
+        switch (message.toLowerCase()) {
+          case '你好':
+          case 'hello':
+          case 'hi':
+            reply = '你好！我是Gemini 3，有什么可以帮助你的吗？'
+            break
+          case '你是谁':
+          case 'who are you':
+            reply = '我是Gemini 3，一个人工智能助手，由Google开发。'
+            break
+          default:
+            reply = `你好！你使用${selectedModel}模型问了："${message}"。这是一个模拟回复，实际应用中会调用真实的AI模型API。`
+        }
+        addMessage('ai', reply)
+      }, 1000)
+    }
+
+    // 添加消息到聊天区域
+    function addMessage(sender, content) {
+      const messageDiv = document.createElement('div')
+      messageDiv.className = `message ${sender}-message`
+
+      if (sender === 'user') {
+        messageDiv.innerHTML = `
+          <div class="message-content user-content">
+            <p>${content}</p>
+          </div>
+        `
+      } else {
+        messageDiv.innerHTML = `
+          <div class="message-content ai-content">
+            <div class="ai-avatar">G</div>
+            <div class="ai-text">
+              <p>${content}</p>
+            </div>
+          </div>
+        `
+      }
+
+      chatMessages.appendChild(messageDiv)
+      // 自动滚动到最新消息
+      chatMessages.scrollTop = chatMessages.scrollHeight
+    }
+
+    // 发送按钮点击事件
+    sendBtn.addEventListener('click', sendMessage)
+
+    // 回车键发送
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage()
+      }
+    })
+
+    // 添加欢迎消息
+    setTimeout(() => {
+      addMessage('ai', '你好！我是Gemini 3，有什么可以帮助你的吗？')
+    }, 500)
+  }
 
   document.querySelector('.system-exit').addEventListener('click', () => {
     console.log('退出登录')
@@ -383,6 +568,8 @@ function setupSystem() {
       alert('注销时出错，请稍后再试');
     }
   })
+
+
 }
 // 页面加载时初始化所有事件监听器
 function initApp() {

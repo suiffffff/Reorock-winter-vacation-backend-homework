@@ -131,14 +131,6 @@
         <button class="toolbar-btn">通知</button>
       </div>
 
-      <!-- 中间搜索框 -->
-      <div class="navbar-center">
-        <div class="search-box">
-          <input type="text" class="search-input" placeholder="搜索作业、课程...">
-          <button class="search-btn">🔍</button>
-        </div>
-      </div>
-
       <!-- 右侧用户信息 -->
       <div class="navbar-right">
         <div class="user-info">
@@ -158,10 +150,196 @@
       </div>
     </nav>
 
-    <!-- 系统内容区域 -->
-    <div style="padding: 20px;">
-      <h1>欢迎使用RedRock系统</h1>
-      <p>这里是系统的主内容区域</p>
+    <!--增加作业模态弹窗 -->
+    <div class="modal fade" id="addHomeworkModal" tabindex="-1" aria-labelledby="addHomeworkModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addHomeworkModalLabel">增加作业</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="addHomeworkForm">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="homework-title" class="form-label">作业标题 *</label>
+                <input type="text" class="form-control" id="homework-title" required>
+              </div>
+              <div class="mb-3">
+                <label for="homework-description" class="form-label">作业描述/要求 *</label>
+                <textarea class="form-control" id="homework-description" rows="4" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="homework-department" class="form-label">所属部门 *</label>
+                <select class="form-select" id="homework-department" required>
+                  <option value="">请选择部门</option>
+                  <option value="后端">后端</option>
+                  <option value="前端">前端</option>
+                  <option value="SRE">SRE</option>
+                  <option value="产品">产品</option>
+                  <option value="视觉设计">视觉设计</option>
+                  <option value="Android">Android</option>
+                  <option value="ios">ios</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="homework-deadline" class="form-label">截止时间 *</label>
+                <input type="datetime-local" class="form-control" id="homework-deadline" required>
+              </div>
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="homework-allow-late">
+                <label class="form-check-label" for="homework-allow-late">允许补交</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+              <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!--系统内容区域 -->
+    <div class="system-content">
+      <!-- 首页内容 -->
+      <div id="content-home" class="content-section">
+        <div class="chat-container">
+          <div class="chat-header">
+            <h4>问问Gemini 3</h4>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <!-- 消息会在这里动态添加 -->
+          </div>
+          <div class="chat-input-area">
+            <select class="model-select">
+              <option value="pro">Pro</option>
+              <option value="ultra">Ultra</option>
+              <option value="nano">Nano</option>
+            </select>
+            <input type="text" class="chat-input" id="chat-input" placeholder="输入你的问题...">
+            <button class="send-btn" id="send-btn">发送</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 作业内容 -->
+      <div id="content-homework" class="content-section hidden">
+        <div class="homework-container">
+          <!-- 左侧筛选表单 -->
+          <div class="filter-sidebar">
+            <div class="filter-header">
+              <h4>筛选条件</h4>
+              <button class="toggle-filter">≡</button>
+            </div>
+            <div class="filter-form">
+              <div class="filter-group">
+                <label>作业标题</label>
+                <input type="text" class="form-control" placeholder="输入作业标题搜索">
+              </div>
+              <div class="filter-group">
+                <label>部门</label>
+                <select class="form-select">
+                  <option>全部部门</option>
+                  <option>后端</option>
+                  <option>前端</option>
+                  <option>SRE</option>
+                  <option>产品</option>
+                  <option>视觉设计</option>
+                  <option>Android</option>
+                  <option>ios</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>截止状态</label>
+                <select class="form-select">
+                  <option>进行中</option>
+                  <option>已截止</option>
+                  <option>全部</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>提交状态</label>
+                <select class="form-select">
+                  <option>全部</option>
+                  <option>已提交</option>
+                  <option>未提交</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>排序</label>
+                <select class="form-select">
+                  <option>截止时间 (近到远)</option>
+                  <option>截止时间 (远到近)</option>
+                  <option>创建时间 (近到远)</option>
+                  <option>创建时间 (远到近)</option>
+                </select>
+              </div>
+              <button class="apply-filter">应用筛选</button>
+              <button class="add-homework-btn" data-bs-toggle="modal" data-bs-target="#addHomeworkModal">增加作业</button>
+            </div>
+          </div>
+
+          <!-- 右侧作业列表 -->
+          <div class="homework-list">
+            <div class="homework-grid">
+              <!-- 作业卡片示例 -->
+              <div class="homework-card">
+                <div class="homework-card-header">
+                  <h5>JavaScript基础作业</h5>
+                  <span class="deadline">截止: 2026-02-01</span>
+                </div>
+                <div class="homework-card-body">
+                  <p>完成JavaScript基础语法练习，包括变量、函数、对象等知识点</p>
+                  <div class="homework-card-footer">
+                    <span class="department-tag">前端开发</span>
+                    <button class="view-btn">查看</button>
+                  </div>
+                </div>
+              </div>
+              <div class="homework-card">
+                <div class="homework-card-header">
+                  <h5>CSS布局练习</h5>
+                  <span class="deadline">截止: 2026-02-03</span>
+                </div>
+                <div class="homework-card-body">
+                  <p>使用Flexbox和Grid实现响应式布局，完成指定的页面设计</p>
+                  <div class="homework-card-footer">
+                    <span class="department-tag">前端开发</span>
+                    <button class="view-btn">查看</button>
+                  </div>
+                </div>
+              </div>
+              <div class="homework-card">
+                <div class="homework-card-header">
+                  <h5>Node.js后端开发</h5>
+                  <span class="deadline">截止: 2026-02-05</span>
+                </div>
+                <div class="homework-card-body">
+                  <p>使用Node.js和Express框架创建RESTful API，实现用户认证功能</p>
+                  <div class="homework-card-footer">
+                    <span class="department-tag">后端开发</span>
+                    <button class="view-btn">查看</button>
+                  </div>
+                </div>
+              </div>
+              <div class="homework-card">
+                <div class="homework-card-header">
+                  <h5>UI设计练习</h5>
+                  <span class="deadline">截止: 2026-02-07</span>
+                </div>
+                <div class="homework-card-body">
+                  <p>为RedRock系统设计一个新的登录页面，要求美观、易用</p>
+                  <div class="homework-card-footer">
+                    <span class="department-tag">设计</span>
+                    <button class="view-btn">查看</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
