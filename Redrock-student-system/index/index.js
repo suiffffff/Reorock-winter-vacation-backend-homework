@@ -131,28 +131,43 @@ function setupLogin() {
     const loginObj = serialize(loginForm, { hash: true, empty: true })
 
     try {
-      const response = await fetch('https://dd0e0bdc-b7fc-42f3-bc87-810ef0bd3eb3.mock.pstmn.io/user/login', {
+      const response = await request('/user/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer <access_token>'
-        },
         body: JSON.stringify(loginObj)
       })
 
       if (!response.ok) {
-        throw new Error('网络请求错误，状态码：' + response.status);
+        throw new Error('网络请求错误，状态码：' + response.status)
       }
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.code === 0) {
-        console.log('登录成功', result);
+        console.log('登录成功', result)
         // 执行跳转或保存 Token
         localStorage.setItem('access_token', result.data.access_token)
         localStorage.setItem('refresh_token', result.data.refresh_token)
 
+        try {
+          const response = await request('/user/profile', {
+            method: 'GET',
+          })
 
+          if (!response.ok) {
+            throw new Error('网络请求错误，状态码：' + response.status)
+          }
+
+          const result = await response.json()
+          if (result.code === 0) {
+            console.log('获取信息成功', result)
+            document.querySelector('.username').innerHTML = result.data.nickname
+            document.querySelector('.avatar').innerHTML = result.data.nickname.charAt(0)
+            document.querySelector('.department').innerHTML = result.data.department_label
+
+          }
+        } catch (error) {
+          console.error('Catch Error:', error)
+        }
         switchPage('page-system')
       } else {
         // 业务逻辑错误 (如密码不对)
@@ -168,7 +183,7 @@ function setupLogin() {
 
     } catch (error) {
       // 捕获所有错误 (网络错误或解析错误)
-      console.error('Catch Error:', error);
+      console.error('Catch Error:', error)
       const toastDom = document.querySelector('.login-toast')
       if (toastDom) {
         const toast = new bootstrap.Toast(toastDom)
@@ -213,11 +228,8 @@ function setupRegister() {
 
       // 检查账号是否重名
       try {
-        const checkResponse = await fetch('https://dd0e0bdc-b7fc-42f3-bc87-810ef0bd3eb3.mock.pstmn.io/user/check-username', {
+        const checkResponse = await request('/user/check-username', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify({ username })
         })
 
@@ -245,11 +257,8 @@ function setupRegister() {
         // 账号不重名，发送注册请求
         console.log('账号可用，准备发送注册请求:', registerObj)
 
-        const registerResponse = await fetch('https://dd0e0bdc-b7fc-42f3-bc87-810ef0bd3eb3.mock.pstmn.io/user/register', {
+        const registerResponse = await request('/user/register', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify(registerObj)
         })
 
@@ -305,8 +314,7 @@ function setupRegister() {
 
 function setupSystem() {
 
-  const dropdownBtn = document.querySelector('.dropdown-btn')
-  dropdownBtn.addEventListener('click', (e) => {
+  document.querySelector('.dropdown-btn').addEventListener('click', (e) => {
     e.stopPropagation();
     const dropdownMenu = document.getElementById('userDropdown')
     dropdownMenu.classList.toggle('show');
@@ -347,12 +355,8 @@ function setupSystem() {
     }
 
     try {
-      // 发送注销请求
-      const response = await fetch('https://dd0e0bdc-b7fc-42f3-bc87-810ef0bd3eb3.mock.pstmn.io/user/account', {
+      const response = await request('/user/account', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ password })
       });
 
