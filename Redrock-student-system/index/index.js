@@ -384,22 +384,326 @@ function setupSystem() {
 
           console.log(result)
 
-          if (result.code === 0 && result.data && result.data.total !== undefined) {
-            const totalItems = result.data.total;
-            //计算有多少页,向上取整
-            this.totalPages = Math.ceil(totalItems / this.itemsPerPage);
-            console.log(this.totalPages)
+          if (result.code === 0 && result.data) {
+            // 处理作业列表数据
+            if (result.data.list && Array.isArray(result.data.list)) {
+              this.renderHomeworkList(result.data.list);
+            }
+
+            // 计算总页数
+            if (result.data.total !== undefined) {
+              const totalItems = result.data.total;
+              this.totalPages = Math.ceil(totalItems / this.itemsPerPage);
+            } else if (result.data.list) {
+              this.totalPages = Math.ceil(result.data.list.length / this.itemsPerPage);
+            }
             return;
           }
         }
       } catch (error) {
-        console.log('获取作业总数失败，使用默认计算');
+        console.log('获取作业数据失败，使用默认计算');
       }
 
       this.totalPages = Math.ceil(this.allHomeworkCards.length / this.itemsPerPage);
       if (this.totalPages < 1) {
         this.totalPages = 1;
       }
+    },
+
+    renderHomeworkList(homeworkList) {
+      const grid = document.getElementById('homeworkGrid');
+      if (!grid) return;
+
+      // 清空现有卡片
+      grid.innerHTML = '';
+      this.allHomeworkCards = [];
+
+      // 渲染新卡片
+      homeworkList.forEach(homework => {
+        const card = this.createHomeworkCard(homework);
+        grid.appendChild(card);
+        this.allHomeworkCards.push(card);
+      });
+
+      // 重新计算每页显示数量
+      this.calculateItemsPerPage();
+    },
+
+    createHomeworkCard(homework) {
+      const card = document.createElement('div');
+      card.className = 'homework-card';
+      card.dataset.homeworkId = homework.id;
+
+      const deadline = homework.deadline ? new Date(homework.deadline) : new Date();
+      const now = new Date();
+      const isOverdue = deadline < now;
+
+      card.innerHTML = `
+        <div class="homework-card-header">
+          <h5>${homework.title || '未命名作业'}</h5>
+          <span class="deadline${isOverdue ? ' overdue' : ''}">截止: ${homework.deadline ? this.formatDate(homework.deadline) : '未设置'}</span>
+        </div>
+        <div class="homework-card-body">
+          <p>${homework.description || '无描述'}</p>
+          <div class="homework-card-footer">
+            <span class="department-tag">${homework.department_label || homework.department || '未知部门'}</span>
+            <button class="view-btn" data-homework-id="${homework.id}">查看</button>
+          </div>
+        </div>
+        <div class="homework-id hidden">${homework.id}</div>
+      `;
+
+      // 添加查看按钮点击事件
+      const viewBtn = card.querySelector('.view-btn');
+      if (viewBtn) {
+        viewBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.viewHomeworkDetail(homework.id);
+        });
+      }
+
+      return card;
+    },
+
+    async viewHomeworkDetail(homeworkId) {
+      try {
+        // 找到对应的作业卡片
+        const card = document.querySelector(`[data-homework-id="${homeworkId}"]`);
+        if (!card) return;
+
+        // 保存卡片的原始状态
+        card.dataset.originalState = 'collapsed';
+        card.dataset.originalClass = card.className;
+        card.style.transition = 'all 0.3s ease';
+
+        // 显示加载状态
+        const loadingMessage = document.createElement('div');
+        loadingMessage.className = 'card-loading';
+        loadingMessage.textContent = '加载中...';
+        card.appendChild(loadingMessage);
+
+        // 发送GET请求获取作业详情
+        const response = await request(`/homework/${homeworkId}`, {
+          method: 'GET'
+        });
+
+        if (!response.ok) {
+          throw new Error('获取作业详情失败，状态码：' + response.status);
+        }
+
+        const result = await response.json();
+
+        if (result.code === 0 && result.data) {
+          // 移除加载状态
+          if (loadingMessage) {
+            loadingMessage.remove();
+          }
+
+          // 扩大卡片
+          this.expandCard(card, result.data);
+        } else {
+          throw new Error('获取作业详情失败：' + (result.msg || '未知错误'));
+        }
+
+      } catch (error) {
+        console.error('查看作业失败:', error);
+        alert('查看作业失败：' + error.message);
+
+        // 移除加载状态
+        const loadingMessage = document.querySelector('.card-loading');
+        if (loadingMessage) {
+          loadingMessage.remove();
+        }
+      }
+    },
+
+    expandCard(card, homework) {
+      const grid = document.getElementById('homeworkGrid');
+      if (!grid || !card) return;
+
+      // 隐藏其他卡片
+      const otherCards = grid.querySelectorAll('.homework-card:not([data-homework-id="' + homework.id + '"])');
+      otherCards.forEach(otherCard => {
+        otherCard.style.display = 'none';
+      });
+
+      // 禁用分页控件
+      this.disablePagination();
+
+      // 扩大当前卡片
+      card.style.minHeight = '600px';
+      card.className = 'homework-card homework-card-expanded';
+      card.dataset.originalState = 'expanded';
+
+      // 保存原始内容
+      const originalContent = card.innerHTML;
+      card.dataset.originalContent = originalContent;
+
+      const deadline = homework.deadline ? new Date(homework.deadline) : new Date();
+      const now = new Date();
+      const isOverdue = deadline < now;
+
+      // 更新卡片内容为详情
+      card.innerHTML = `
+        <div class="homework-detail-header">
+          <div class="homework-detail-actions">
+            <button class="homework-back-btn" data-homework-id="${homework.id}">返回</button>
+            <h3>${homework.title || '未命名作业'}</h3>
+            <button class="homework-edit-btn" data-homework-id="${homework.id}">修改作业</button>
+          </div>
+          <div class="homework-detail-meta">
+            <span class="homework-detail-deadline${isOverdue ? ' overdue' : ''}">截止: ${homework.deadline ? this.formatDateTime(homework.deadline) : '未设置'}</span>
+            <span class="homework-detail-department">${homework.department_label || homework.department || '未知部门'}</span>
+          </div>
+        </div>
+        <div class="homework-detail-content">
+          <h4>作业描述</h4>
+          <p>${homework.description || '无描述'}</p>
+          <h4>创建者</h4>
+          <p>${homework.creator ? homework.creator.nickname : '未知'}</p>
+          <h4>提交情况</h4>
+          <p>已提交: ${homework.submission_count || 0} 人</p>
+        </div>
+        <div class="homework-submission-section">
+          <h4>提交作业</h4>
+          <div class="submission-form">
+            <div class="form-group">
+              <label for="submission-text-${homework.id}">作业说明</label>
+              <textarea id="submission-text-${homework.id}" class="form-control" rows="4" placeholder="请输入作业说明..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="submission-file-${homework.id}">上传文件</label>
+              <input type="file" id="submission-file-${homework.id}" class="form-control-file">
+            </div>
+            <button class="submission-btn" data-homework-id="${homework.id}">提交作业</button>
+          </div>
+        </div>
+        <div class="homework-id hidden">${homework.id}</div>
+      `;
+
+      // 添加返回按钮点击事件
+      const backBtn = card.querySelector('.homework-back-btn');
+      if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.collapseCard(card);
+        });
+      }
+
+      // 添加修改按钮点击事件
+      const editBtn = card.querySelector('.homework-edit-btn');
+      if (editBtn) {
+        editBtn.addEventListener('click', () => {
+          alert('修改作业功能开发中...');
+        });
+      }
+
+      // 添加提交按钮点击事件
+      const submissionBtn = card.querySelector('.submission-btn');
+      if (submissionBtn) {
+        submissionBtn.addEventListener('click', () => {
+          this.submitHomework(homework.id);
+        });
+      }
+    },
+
+    collapseCard(card) {
+      if (!card) return;
+
+      // 恢复其他卡片的显示
+      const grid = document.getElementById('homeworkGrid');
+      if (grid) {
+        const otherCards = grid.querySelectorAll('.homework-card');
+        otherCards.forEach(otherCard => {
+          otherCard.style.display = '';
+        });
+      }
+
+      // 恢复卡片的原始状态
+      card.style.transition = 'all 0.3s ease';
+      card.className = card.dataset.originalClass || 'homework-card';
+      card.style.minHeight = '';
+
+      // 恢复原始内容
+      if (card.dataset.originalContent) {
+        card.innerHTML = card.dataset.originalContent;
+      }
+
+      // 重新绑定查看按钮事件
+      const viewBtn = card.querySelector('.view-btn');
+      if (viewBtn) {
+        const homeworkId = card.dataset.homeworkId;
+        viewBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.viewHomeworkDetail(homeworkId);
+        });
+      }
+
+      // 清除保存的状态
+      delete card.dataset.originalState;
+      delete card.dataset.originalClass;
+      delete card.dataset.originalContent;
+      card.style.transition = '';
+
+      // 重新渲染当前页面，确保所有卡片正确显示
+      this.renderPage(this.currentPage);
+
+      // 重新启用分页控件
+      this.enablePagination();
+    },
+
+    // 禁用分页控件
+    disablePagination() {
+      const pagination = document.getElementById('homeworkPagination');
+      if (pagination) {
+        pagination.style.pointerEvents = 'none';
+        pagination.style.opacity = '0.5';
+      }
+    },
+
+    // 启用分页控件
+    enablePagination() {
+      const pagination = document.getElementById('homeworkPagination');
+      if (pagination) {
+        pagination.style.pointerEvents = '';
+        pagination.style.opacity = '';
+      }
+    },
+
+    bindCardEvents() {
+      const viewBtns = document.querySelectorAll('.view-btn');
+      viewBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const homeworkId = btn.dataset.homeworkId;
+          if (homeworkId) {
+            this.viewHomeworkDetail(homeworkId);
+          }
+        });
+      });
+    },
+
+    async submitHomework(homeworkId) {
+      const submissionText = document.getElementById(`submission-text-${homeworkId}`).value;
+      const submissionFile = document.getElementById(`submission-file-${homeworkId}`).files[0];
+
+      try {
+        // 这里可以实现文件上传和作业提交逻辑
+        alert('作业提交功能开发中...');
+      } catch (error) {
+        console.error('提交作业失败:', error);
+        alert('提交作业失败：' + error.message);
+      }
+    },
+
+    formatDateTime(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleString('zh-CN');
+    },
+
+    formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
     },
 
 
@@ -698,7 +1002,7 @@ function setupSystem() {
   const modelOptions = document.querySelectorAll('.model-option')
   const selectedModelSpan = document.getElementById('selected-model')
   const apiKeyForm = document.getElementById('apiKeyForm')
-  let currentModel = 'gemini'
+  let currentModel = '模型'
 
   if (chatInput && sendBtn && chatMessages && currentModelBtn && modelDropdownMenu) {
     // 初始化时加载已保存的API Key
@@ -732,7 +1036,6 @@ function setupSystem() {
           // 已配置，切换模型
           currentModel = model
           selectedModelSpan.textContent = option.textContent
-          console.log('切换模型为:', currentModel)
         }
 
         // 关闭下拉菜单
@@ -766,7 +1069,8 @@ function setupSystem() {
     }
 
     // 发送消息函数
-    function sendMessage() {
+    async function sendMessage() {
+      //trim是去除空格
       const message = chatInput.value.trim()
       if (!message) return
 
@@ -785,20 +1089,42 @@ function setupSystem() {
       // 清空输入框
       chatInput.value = ''
 
-      // 这里将来会调用API
-      console.log('发送消息到', currentModel, '模型:', message)
-
       // 显示加载状态
       const loadingMessage = addMessage('ai', '正在思考...')
 
-      // 模拟API调用延迟
-      setTimeout(() => {
+      // 调用后端API
+      try {
+        const response = await request('/chat', {
+          method: 'POST',
+          body: JSON.stringify({
+            message: message,
+            model: currentModel
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error('API请求失败，状态码：' + response.status)
+        }
+
+        const result = await response.json()
+
+        if (result.code === 0 && result.data && result.data.reply) {
+          // 移除加载消息
+          console.assert(result.data.reply)
+          loadingMessage.remove()
+          // 显示AI回复
+          addMessage('ai', result.data.reply)
+        } else {
+          throw new Error('API返回格式错误或无回复内容')
+        }
+
+      } catch (error) {
+        console.error('AI请求失败:', error)
         // 移除加载消息
         loadingMessage.remove()
-
-        // 显示API调用提示（实际应用中会替换为真实回复）
-        addMessage('ai', `API调用: ${currentModel} 模型正在处理你的请求...`)
-      }, 1000)
+        // 显示错误消息
+        addMessage('ai', '抱歉，请求AI服务失败：' + error.message)
+      }
     }
 
     // 添加消息到聊天区域
