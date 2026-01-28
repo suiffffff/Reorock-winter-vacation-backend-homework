@@ -200,23 +200,59 @@
       </div>
     </div>
 
+    <!--API Key配置模态弹窗 -->
+    <div class="modal fade" id="apiKeyModal" tabindex="-1" aria-labelledby="apiKeyModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="apiKeyModalLabel">API Key配置</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="apiKeyForm">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="gemini-api-key" class="form-label">Gemini API Key</label>
+                <input type="text" class="form-control" id="gemini-api-key" placeholder="输入Gemini API Key">
+              </div>
+              <div class="mb-3">
+                <label for="deepseek-api-key" class="form-label">DeepSeek API Key</label>
+                <input type="text" class="form-control" id="deepseek-api-key" placeholder="输入DeepSeek API Key">
+              </div>
+              <p class="text-muted text-sm">提示：API Key将存储在本地，用于调用相应的AI模型API</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+              <button type="submit" class="btn btn-primary">保存配置</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!--系统内容区域 -->
     <div class="system-content">
       <!-- 首页内容 -->
       <div id="content-home" class="content-section">
         <div class="chat-container">
           <div class="chat-header">
-            <h4>问问Gemini 3</h4>
+            <h4>问问AI</h4>
+            <div class="model-selector">
+              <div class="model-dropdown">
+                <button class="model-btn" id="current-model-btn">
+                  <span id="selected-model">Gemini</span>
+                  <span class="dropdown-icon">▼</span>
+                </button>
+                <div class="model-dropdown-menu" id="model-dropdown-menu">
+                  <button class="model-option" data-model="gemini">Gemini</button>
+                  <button class="model-option" data-model="deepseek">DeepSeek</button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="chat-messages" id="chat-messages">
             <!-- 消息会在这里动态添加 -->
           </div>
           <div class="chat-input-area">
-            <select class="model-select">
-              <option value="pro">Pro</option>
-              <option value="ultra">Ultra</option>
-              <option value="nano">Nano</option>
-            </select>
             <input type="text" class="chat-input" id="chat-input" placeholder="输入你的问题...">
             <button class="send-btn" id="send-btn">发送</button>
           </div>
@@ -340,6 +376,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 

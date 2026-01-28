@@ -313,7 +313,6 @@ function setupRegister() {
 
 
 function setupSystem() {
-
   const dropdownBtn = document.querySelector('.dropdown-btn')
   dropdownBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -434,15 +433,91 @@ function setupSystem() {
   const chatInput = document.getElementById('chat-input')
   const sendBtn = document.getElementById('send-btn')
   const chatMessages = document.getElementById('chat-messages')
-  const modelSelect = document.querySelector('.model-select')
+  const currentModelBtn = document.getElementById('current-model-btn')
+  const modelDropdownMenu = document.getElementById('model-dropdown-menu')
+  const modelOptions = document.querySelectorAll('.model-option')
+  const selectedModelSpan = document.getElementById('selected-model')
+  const apiKeyForm = document.getElementById('apiKeyForm')
+  let currentModel = 'gemini'
 
-  if (chatInput && sendBtn && chatMessages) {
+  if (chatInput && sendBtn && chatMessages && currentModelBtn && modelDropdownMenu) {
+    // 初始化时加载已保存的API Key
+    loadApiKeys()
+
+    // 模型下拉菜单切换
+    currentModelBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      currentModelBtn.classList.toggle('open')
+      modelDropdownMenu.classList.toggle('show')
+    })
+
+    // 点击其他区域关闭下拉菜单
+    document.addEventListener('click', () => {
+      currentModelBtn.classList.remove('open')
+      modelDropdownMenu.classList.remove('show')
+    })
+
+    // 模型选择
+    modelOptions.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const model = option.dataset.model
+
+        // 检查该模型的API Key是否已配置
+        if (!hasApiKey(model)) {
+          // 未配置，弹出配置模态框
+          const modal = new bootstrap.Modal(document.getElementById('apiKeyModal'))
+          modal.show()
+        } else {
+          // 已配置，切换模型
+          currentModel = model
+          selectedModelSpan.textContent = option.textContent
+          console.log('切换模型为:', currentModel)
+        }
+
+        // 关闭下拉菜单
+        currentModelBtn.classList.remove('open')
+        modelDropdownMenu.classList.remove('show')
+      })
+    })
+
+    // API Key配置表单提交
+    if (apiKeyForm) {
+      apiKeyForm.addEventListener('submit', (e) => {
+        e.preventDefault()
+
+        // 保存API Key到本地存储
+        const geminiKey = document.getElementById('gemini-api-key').value
+        const deepseekKey = document.getElementById('deepseek-api-key').value
+
+        if (geminiKey) {
+          localStorage.setItem('gemini_api_key', geminiKey)
+        }
+        if (deepseekKey) {
+          localStorage.setItem('deepseek_api_key', deepseekKey)
+        }
+
+        // 关闭模态框
+        const modal = bootstrap.Modal.getInstance(document.getElementById('apiKeyModal'))
+        modal.hide()
+
+        alert('API Key配置保存成功！')
+      })
+    }
+
     // 发送消息函数
     function sendMessage() {
       const message = chatInput.value.trim()
       if (!message) return
 
-      const selectedModel = modelSelect.value || 'pro'
+      // 检查当前模型的API Key是否已配置
+      if (!hasApiKey(currentModel)) {
+        alert('请先配置' + (currentModel === 'gemini' ? 'Gemini' : 'DeepSeek') + '的API Key！')
+        // 弹出配置模态框
+        const modal = new bootstrap.Modal(document.getElementById('apiKeyModal'))
+        modal.show()
+        return
+      }
 
       // 添加用户消息
       addMessage('user', message)
@@ -450,23 +525,19 @@ function setupSystem() {
       // 清空输入框
       chatInput.value = ''
 
-      // 模拟AI回复
+      // 这里将来会调用API
+      console.log('发送消息到', currentModel, '模型:', message)
+
+      // 显示加载状态
+      const loadingMessage = addMessage('ai', '正在思考...')
+
+      // 模拟API调用延迟
       setTimeout(() => {
-        let reply = ''
-        switch (message.toLowerCase()) {
-          case '你好':
-          case 'hello':
-          case 'hi':
-            reply = '你好！我是Gemini 3，有什么可以帮助你的吗？'
-            break
-          case '你是谁':
-          case 'who are you':
-            reply = '我是Gemini 3，一个人工智能助手，由Google开发。'
-            break
-          default:
-            reply = `你好！你使用${selectedModel}模型问了："${message}"。这是一个模拟回复，实际应用中会调用真实的AI模型API。`
-        }
-        addMessage('ai', reply)
+        // 移除加载消息
+        loadingMessage.remove()
+
+        // 显示API调用提示（实际应用中会替换为真实回复）
+        addMessage('ai', `API调用: ${currentModel} 模型正在处理你的请求...`)
       }, 1000)
     }
 
@@ -484,7 +555,7 @@ function setupSystem() {
       } else {
         messageDiv.innerHTML = `
           <div class="message-content ai-content">
-            <div class="ai-avatar">G</div>
+            <div class="ai-avatar">${currentModel === 'gemini' ? 'G' : 'D'}</div>
             <div class="ai-text">
               <p>${content}</p>
             </div>
@@ -495,6 +566,27 @@ function setupSystem() {
       chatMessages.appendChild(messageDiv)
       // 自动滚动到最新消息
       chatMessages.scrollTop = chatMessages.scrollHeight
+
+      return messageDiv
+    }
+
+    // 检查API Key是否已配置
+    function hasApiKey(model) {
+      const key = localStorage.getItem(model + '_api_key')
+      return key && key.trim() !== ''
+    }
+
+    // 加载已保存的API Key
+    function loadApiKeys() {
+      const geminiKey = localStorage.getItem('gemini_api_key')
+      const deepseekKey = localStorage.getItem('deepseek_api_key')
+
+      if (geminiKey) {
+        document.getElementById('gemini-api-key').value = geminiKey
+      }
+      if (deepseekKey) {
+        document.getElementById('deepseek-api-key').value = deepseekKey
+      }
     }
 
     // 发送按钮点击事件
@@ -509,7 +601,7 @@ function setupSystem() {
 
     // 添加欢迎消息
     setTimeout(() => {
-      addMessage('ai', '你好！我是Gemini 3，有什么可以帮助你的吗？')
+      addMessage('ai', `请先点击模型按钮配置api key`)
     }, 500)
   }
 
