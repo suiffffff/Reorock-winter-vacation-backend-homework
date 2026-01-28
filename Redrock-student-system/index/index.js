@@ -340,40 +340,23 @@ function setupSystem() {
     //存储数据
     allHomeworkCards: [],
 
-    init() {
+    //加了个异步，发现服务器返回数据需要一会，这段时间渲染会出问题，干脆先返回数据再渲染界面
+    async init() {
       const grid = document.getElementById('homeworkGrid');
+      if (!grid) return;
 
       //转节点列表转数组
       this.allHomeworkCards = Array.from(grid.querySelectorAll('.homework-card'));
       //计算每页显示多少卡片
       this.calculateItemsPerPage();
       //计算页数
-      this.updateTotalPages();
+      await this.updateTotalPages();
       //绑定点击事件
       this.bindEvents();
       //初始渲染，强制显示第一页
       this.renderPage(1);
       //响应式处理，监听点击以及窗口变化
       this.bindResizeEvent();
-    },
-
-    bindResizeEvent() {
-      let resizeTimeout;
-      //监听窗口变化
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          //如果旧的卡片与新的卡片数量一样，就不进行跳转
-          const oldItemsPerPage = this.itemsPerPage;
-          this.calculateItemsPerPage();
-
-          if (oldItemsPerPage !== this.itemsPerPage) {
-            this.updateTotalPages().then(() => {
-              this.renderPage(1);
-            });
-          }
-        }, 100);
-      });
     },
 
     calculateItemsPerPage() {
@@ -403,7 +386,9 @@ function setupSystem() {
 
           if (result.code === 0 && result.data && result.data.total !== undefined) {
             const totalItems = result.data.total;
+            //计算有多少页,向上取整
             this.totalPages = Math.ceil(totalItems / this.itemsPerPage);
+            console.log(this.totalPages)
             return;
           }
         }
@@ -417,21 +402,64 @@ function setupSystem() {
       }
     },
 
-    setTotalPages(totalPages) {
-      this.totalPages = totalPages;
-      if (this.totalPages < 1) {
-        this.totalPages = 1;
+
+    //这个是服务器分发页数，这里用不到
+    // setTotalPages(totalPages) {
+    //   this.totalPages = totalPages;
+    //   if (this.totalPages < 1) {
+    //     this.totalPages = 1;
+    //   }
+    //   this.renderPaginationNumbers();
+    // },
+    bindEvents() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          if (this.currentPage > 1) {
+            this.renderPage(this.currentPage - 1);
+          }
+        });
       }
-      this.renderPaginationNumbers();
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          if (this.currentPage < this.totalPages) {
+            this.renderPage(this.currentPage + 1);
+          }
+        });
+      }
+    },
+
+    bindResizeEvent() {
+      let resizeTimeout;
+      //监听窗口变化
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          //如果旧的卡片与新的卡片数量一样，就不进行跳转
+          const oldItemsPerPage = this.itemsPerPage;
+          this.calculateItemsPerPage();
+
+          if (oldItemsPerPage !== this.itemsPerPage) {
+            //等待总页数加载完后，再渲染第一页
+            this.updateTotalPages().then(() => {
+              this.renderPage(1);
+            });
+          }
+        }, 100);
+      });
     },
 
     renderPage(page) {
       if (page < 1 || page > this.totalPages) return;
 
+      //获取当前页码数，然后获取对应的作业卡片索引
       this.currentPage = page;
       const startIndex = (page - 1) * this.itemsPerPage;
       const endIndex = startIndex + this.itemsPerPage;
-
+      //将数组里的card和index拿出，给对应的卡片增加显示，其他卡片隐藏
       this.allHomeworkCards.forEach((card, index) => {
         if (index >= startIndex && index < endIndex) {
           card.style.display = '';
@@ -442,24 +470,41 @@ function setupSystem() {
 
       this.updatePaginationControls();
     },
+    updatePaginationControls() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
 
+      if (prevBtn) {
+        prevBtn.disabled = this.currentPage <= 1;
+      }
+      if (nextBtn) {
+        nextBtn.disabled = this.currentPage >= this.totalPages;
+      }
+
+      this.renderPaginationNumbers();
+    },
+
+    //这里是分页的逻辑
     renderPaginationNumbers() {
       const container = document.getElementById('paginationNumbers');
       if (!container) return;
 
       container.innerHTML = '';
 
+      //小于7个
       if (this.totalPages <= 7) {
         for (let i = 1; i <= this.totalPages; i++) {
           const btn = document.createElement('button');
+          //如果 i 等于当前页，加上 'active' 样式
           btn.className = `pagination-btn${i === this.currentPage ? ' active' : ''}`;
           btn.textContent = i;
+          //这里点击后会进入renderPage,进入updataPaginationControls,进入renderPaginationNumbers.加入一个激活类
           btn.addEventListener('click', () => this.renderPage(i));
           container.appendChild(btn);
         }
       } else {
         const pageButtons = [];
-
+        //当前页码位于首，推入1，2，3，4，5，...,最后页码到一个数组
         if (this.currentPage <= 4) {
           for (let i = 1; i <= 5; i++) {
             pageButtons.push(i);
@@ -467,12 +512,14 @@ function setupSystem() {
           pageButtons.push('...');
           pageButtons.push(this.totalPages);
         } else if (this.currentPage >= this.totalPages - 3) {
+          //当前页码位于末尾，推入1，...，末尾的数字
           pageButtons.push(1);
           pageButtons.push('...');
           for (let i = this.totalPages - 4; i <= this.totalPages; i++) {
             pageButtons.push(i);
           }
         } else {
+          //当前页码离首尾均有距离，按照1,...,-2，-1，0，+1，+2,...尾
           pageButtons.push(1);
           pageButtons.push('...');
           for (let i = this.currentPage - 2; i <= this.currentPage + 2; i++) {
@@ -481,7 +528,7 @@ function setupSystem() {
           pageButtons.push('...');
           pageButtons.push(this.totalPages);
         }
-
+        //排列好后开始创建元素兵器插入
         pageButtons.forEach(item => {
           if (item === '...') {
             const ellipsis = document.createElement('span');
@@ -497,7 +544,7 @@ function setupSystem() {
           }
         });
       }
-
+      //传入的是<div class="pagination-numbers" id="paginationNumbers">这个盒子
       this.addPageJumpInput(container);
     },
 
@@ -543,46 +590,11 @@ function setupSystem() {
         });
       }
     },
-
-    updatePaginationControls() {
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-
-      if (prevBtn) {
-        prevBtn.disabled = this.currentPage <= 1;
-      }
-      if (nextBtn) {
-        nextBtn.disabled = this.currentPage >= this.totalPages;
-      }
-
-      this.renderPaginationNumbers();
-    },
-
-    bindEvents() {
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-
-      if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-          if (this.currentPage > 1) {
-            this.renderPage(this.currentPage - 1);
-          }
-        });
-      }
-
-      if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-          if (this.currentPage < this.totalPages) {
-            this.renderPage(this.currentPage + 1);
-          }
-        });
-      }
-    }
   };
 
   const toolbarBtns = document.querySelectorAll('.toolbar-btn')
   toolbarBtns.forEach((btn, index) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const contentSections = document.querySelectorAll('.content-section')
       contentSections.forEach(section => section.classList.add('hidden'))
 
@@ -590,7 +602,7 @@ function setupSystem() {
         document.getElementById('content-home').classList.remove('hidden')
       } else if (index === 1) {
         document.getElementById('content-homework').classList.remove('hidden')
-        homeworkPagination.init()
+        await homeworkPagination.init()
       }
     })
   })
