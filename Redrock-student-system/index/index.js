@@ -1312,12 +1312,21 @@ function setupSystem() {
   }
 
 
+  // 存储事件监听器引用，以便后续移除
+  let homeworkGridClickHandler = null;
+  let documentClickHandler = null;
+
   // 添加作业卡片的事件委托
   function setupHomeworkCardEvents() {
     const homeworkGrid = document.getElementById('homeworkGrid');
     if (homeworkGrid) {
-      // 点击事件委托
-      homeworkGrid.addEventListener('click', (e) => {
+      // 移除旧的事件监听器，避免重复绑定
+      if (homeworkGridClickHandler) {
+        homeworkGrid.removeEventListener('click', homeworkGridClickHandler);
+      }
+
+      // 定义新的事件处理函数
+      homeworkGridClickHandler = (e) => {
         e.stopPropagation();
 
         // 处理查看按钮点击
@@ -1452,17 +1461,28 @@ function setupSystem() {
             }
           }
         }
-      });
+      };
+
+      // 添加新的事件监听器
+      homeworkGrid.addEventListener('click', homeworkGridClickHandler);
     }
 
-    // 点击其他区域关闭下拉菜单
-    document.addEventListener('click', (e) => {
+    // 移除旧的文档点击事件监听器
+    if (documentClickHandler) {
+      document.removeEventListener('click', documentClickHandler);
+    }
+
+    // 定义新的文档点击事件处理函数
+    documentClickHandler = (e) => {
       if (!e.target.closest('.view-dropdown')) {
         document.querySelectorAll('.view-dropdown').forEach(dropdown => {
           dropdown.classList.remove('active');
         });
       }
-    });
+    };
+
+    // 添加新的文档点击事件监听器
+    document.addEventListener('click', documentClickHandler);
   }
 
   // 聊天功能
