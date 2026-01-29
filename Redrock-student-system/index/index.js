@@ -342,21 +342,39 @@ function setupSystem() {
 
     //加了个异步，发现服务器返回数据需要一会，这段时间渲染会出问题，干脆先返回数据再渲染界面
     async init() {
-      const grid = document.getElementById('homeworkGrid');
-      if (!grid) return;
+      // 禁用所有功能按钮，防止在获取数据过程中点击
+      const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+      allButtons.forEach(button => {
+        button.disabled = true;
+        button.style.opacity = '0.6';
+        button.style.cursor = 'not-allowed';
+      });
 
-      //转节点列表转数组
-      this.allHomeworkCards = Array.from(grid.querySelectorAll('.homework-card'));
-      //计算每页显示多少卡片
-      this.calculateItemsPerPage();
-      //计算页数
-      await this.updateTotalPages();
-      //绑定点击事件
-      this.bindEvents();
-      //初始渲染，强制显示第一页
-      this.renderPage(1);
-      //响应式处理，监听点击以及窗口变化
-      this.bindResizeEvent();
+      try {
+        const grid = document.getElementById('homeworkGrid');
+        if (!grid) return;
+
+        //转节点列表转数组
+        this.allHomeworkCards = Array.from(grid.querySelectorAll('.homework-card'));
+        //计算每页显示多少卡片
+        this.calculateItemsPerPage();
+        //计算页数
+        await this.updateTotalPages();
+        //绑定点击事件
+        this.bindEvents();
+        //初始渲染，强制显示第一页
+        this.renderPage(1);
+        //响应式处理，监听点击以及窗口变化
+        this.bindResizeEvent();
+      } finally {
+        // 重新启用所有功能按钮
+        const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+        allButtons.forEach(button => {
+          button.disabled = false;
+          button.style.opacity = '1';
+          button.style.cursor = '';
+        });
+      }
     },
 
     calculateItemsPerPage() {
@@ -428,6 +446,14 @@ function setupSystem() {
 
       // 重新计算每页显示数量
       this.calculateItemsPerPage();
+
+      // 禁用所有新创建的功能按钮，确保在init()完成前保持禁用状态
+      const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+      allButtons.forEach(button => {
+        button.disabled = true;
+        button.style.opacity = '0.6';
+        button.style.cursor = 'not-allowed';
+      });
     },
 
     createHomeworkCard(homework) {
@@ -475,6 +501,14 @@ function setupSystem() {
 
     async viewHomeworkDetail(homeworkId) {
       try {
+        // 禁用所有功能按钮，防止重复请求
+        const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+        allButtons.forEach(button => {
+          button.disabled = true;
+          button.style.opacity = '0.6';
+          button.style.cursor = 'not-allowed';
+        });
+
         // 找到对应的作业卡片
         const card = document.querySelector(`[data-homework-id="${homeworkId}"]`);
         if (!card) return;
@@ -522,6 +556,14 @@ function setupSystem() {
         if (loadingMessage) {
           loadingMessage.remove();
         }
+
+        // 重新启用所有功能按钮
+        const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+        allButtons.forEach(button => {
+          button.disabled = false;
+          button.style.opacity = '1';
+          button.style.cursor = '';
+        });
       }
     },
 
@@ -637,6 +679,14 @@ function setupSystem() {
 
       // 确认删除处理函数
       async function handleConfirmDelete() {
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        if (!confirmDeleteBtn) return;
+
+        // 禁用删除按钮，防止重复点击
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.style.opacity = '0.6';
+        confirmDeleteBtn.style.cursor = 'not-allowed';
+
         const homeworkId = window.currentDeleteHomeworkId;
         if (homeworkId) {
           // 关闭模态框
@@ -675,7 +725,16 @@ function setupSystem() {
           } finally {
             // 清除存储的作业ID
             window.currentDeleteHomeworkId = null;
+            // 重新启用删除按钮
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.style.opacity = '1';
+            confirmDeleteBtn.style.cursor = '';
           }
+        } else {
+          // 没有作业ID，重新启用按钮
+          confirmDeleteBtn.disabled = false;
+          confirmDeleteBtn.style.opacity = '1';
+          confirmDeleteBtn.style.cursor = '';
         }
       }
 
@@ -780,6 +839,14 @@ function setupSystem() {
 
       // 重新启用分页控件
       this.enablePagination();
+
+      // 重新启用所有功能按钮
+      const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+      allButtons.forEach(button => {
+        button.disabled = false;
+        button.style.opacity = '1';
+        button.style.cursor = '';
+      });
     },
 
     // 禁用分页控件
@@ -1164,6 +1231,14 @@ function setupSystem() {
         return
       }
 
+      // 找到提交按钮并禁用
+      const submitButton = editHomeworkForm.querySelector('button[type="submit"]')
+      if (submitButton) {
+        submitButton.disabled = true
+        submitButton.style.opacity = '0.6'
+        submitButton.style.cursor = 'not-allowed'
+      }
+
       // 收集表单数据
       const formData = {
         id: document.getElementById('edit-homework-id').value,
@@ -1199,6 +1274,14 @@ function setupSystem() {
           editHomeworkForm.reset()
           editHomeworkForm.classList.remove('was-validated')
 
+          // 重新启用所有功能按钮
+          const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+          allButtons.forEach(button => {
+            button.disabled = false;
+            button.style.opacity = '1';
+            button.style.cursor = '';
+          });
+
           // 这里可以添加刷新作业列表的逻辑
         } else {
           // 业务逻辑错误
@@ -1209,6 +1292,21 @@ function setupSystem() {
         // 网络错误或其他错误
         console.error('修改作业时出错:', error)
         alert('修改作业时出错，请稍后再试')
+      } finally {
+        // 重新启用提交按钮
+        if (submitButton) {
+          submitButton.disabled = false
+          submitButton.style.opacity = '1'
+          submitButton.style.cursor = ''
+        }
+
+        // 重新启用所有功能按钮
+        const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+        allButtons.forEach(button => {
+          button.disabled = false;
+          button.style.opacity = '1';
+          button.style.cursor = '';
+        });
       }
     })
   }
@@ -1216,21 +1314,16 @@ function setupSystem() {
 
   // 添加作业卡片的事件委托
   function setupHomeworkCardEvents() {
-    console.log('setupHomeworkCardEvents called');
     const homeworkGrid = document.getElementById('homeworkGrid');
     if (homeworkGrid) {
-      console.log('homeworkGrid found');
       // 点击事件委托
       homeworkGrid.addEventListener('click', (e) => {
-        console.log('homeworkGrid click event:', e.target);
         e.stopPropagation();
 
         // 处理查看按钮点击
         if (e.target.classList.contains('view-btn')) {
-          console.log('view-btn clicked');
           const viewDropdown = e.target.closest('.view-dropdown');
           if (viewDropdown) {
-            console.log('viewDropdown found:', viewDropdown);
             // 关闭所有其他打开的下拉菜单
             document.querySelectorAll('.view-dropdown').forEach(dropdown => {
               if (dropdown !== viewDropdown) {
@@ -1239,20 +1332,17 @@ function setupSystem() {
             });
             // 切换当前下拉菜单显示/隐藏
             viewDropdown.classList.toggle('active');
-            console.log('viewDropdown active class toggled');
           }
         }
 
         // 处理查看作业菜单项点击
         else if (e.target.classList.contains('view-homework')) {
-          console.log('view-homework clicked');
           const viewDropdown = e.target.closest('.view-dropdown');
           if (viewDropdown) {
             viewDropdown.classList.remove('active');
             const homeworkCard = viewDropdown.closest('.homework-card');
             const homeworkId = homeworkCard.dataset.homeworkId;
             if (homeworkId) {
-              console.log('viewHomeworkDetail called with id:', homeworkId);
               homeworkPagination.viewHomeworkDetail(homeworkId);
             }
           }
@@ -1260,32 +1350,105 @@ function setupSystem() {
 
         // 处理修改作业菜单项点击
         else if (e.target.classList.contains('edit-homework')) {
-          console.log('edit-homework clicked');
           const viewDropdown = e.target.closest('.view-dropdown');
           if (viewDropdown) {
             viewDropdown.classList.remove('active');
             const homeworkCard = viewDropdown.closest('.homework-card');
             const homeworkId = homeworkCard.dataset.homeworkId;
             if (homeworkId) {
-              // 这里可以获取作业数据，然后填充模态框
-              const editModal = new bootstrap.Modal(document.getElementById('editHomeworkModal'));
-              editModal.show();
+              // 禁用所有功能按钮，防止重复请求
+              const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+              allButtons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.6';
+                button.style.cursor = 'not-allowed';
+              });
+
+              // 获取作业详情并填充模态框
+              async function getHomeworkDetail() {
+                try {
+                  const response = await request(`/homework/${homeworkId}`, {
+                    method: 'GET'
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('获取作业详情失败，状态码：' + response.status);
+                  }
+
+                  const result = await response.json();
+
+                  if (result.code === 0 && result.data) {
+                    const homework = result.data;
+                    // 填充修改作业模态框数据
+                    document.getElementById('edit-homework-id').value = homework.id;
+                    document.getElementById('edit-homework-title').value = homework.title || '';
+                    document.getElementById('edit-homework-description').value = homework.description || '';
+                    // 填充截止时间
+                    if (homework.deadline) {
+                      const deadline = new Date(homework.deadline);
+                      const localDateTime = deadline.toISOString().slice(0, 16);
+                      document.getElementById('edit-homework-deadline').value = localDateTime;
+                    }
+                    // 填充允许补交
+                    document.getElementById('edit-homework-allow-late').checked = homework.allow_late || false;
+                    // 显示修改作业模态框
+                    const editModal = new bootstrap.Modal(document.getElementById('editHomeworkModal'));
+                    editModal.show();
+                  } else {
+                    throw new Error('获取作业详情失败：' + (result.msg || '未知错误'));
+                  }
+                } catch (error) {
+                  console.error('获取作业详情时出错:', error);
+                  alert('获取作业详情时出错，请稍后再试');
+                } finally {
+                  // 重新启用所有功能按钮
+                  const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+                  allButtons.forEach(button => {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                    button.style.cursor = '';
+                  });
+                }
+              }
+              getHomeworkDetail();
             }
           }
         }
 
         // 处理删除作业菜单项点击
         else if (e.target.classList.contains('delete-homework')) {
-          console.log('delete-homework clicked');
+
           const viewDropdown = e.target.closest('.view-dropdown');
           if (viewDropdown) {
             viewDropdown.classList.remove('active');
             const homeworkCard = viewDropdown.closest('.homework-card');
             const homeworkId = homeworkCard.dataset.homeworkId;
             if (homeworkId) {
+              // 禁用所有功能按钮，防止重复请求
+              const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+              allButtons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.6';
+                button.style.cursor = 'not-allowed';
+              });
+
               window.currentDeleteHomeworkId = homeworkId;
               const deleteModal = new bootstrap.Modal(document.getElementById('deleteHomeworkModal'));
               deleteModal.show();
+
+              // 监听模态框关闭事件，重新启用按钮
+              const modalElement = document.getElementById('deleteHomeworkModal');
+              modalElement.addEventListener('hidden.bs.modal', function handler() {
+                // 重新启用所有功能按钮
+                const allButtons = document.querySelectorAll('.view-btn, .view-homework, .edit-homework, .delete-homework');
+                allButtons.forEach(button => {
+                  button.disabled = false;
+                  button.style.opacity = '1';
+                  button.style.cursor = '';
+                });
+                // 移除事件监听器，避免重复绑定
+                modalElement.removeEventListener('hidden.bs.modal', handler);
+              });
             }
           }
         }
