@@ -503,6 +503,34 @@ body {
   border-radius: 4px;
 }
 
+.homework-card {
+  overflow: visible;
+}
+
+.homework-card-body {
+  overflow: visible;
+}
+
+.homework-card-footer {
+  position: relative;
+  overflow: visible;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view-dropdown {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+.view-dropdown.active {
+  width: 180px;
+}
+
 .view-btn {
   padding: 6px 12px;
   background-color: #28a745;
@@ -512,11 +540,68 @@ body {
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  width: 100%;
+  text-align: center;
 }
 
 .view-btn:hover {
   background-color: #218838;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.view-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background-color: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  padding: 4px 0;
+  z-index: 1001;
+  display: none;
+  min-width: 180px;
+  white-space: nowrap;
+}
+
+.view-dropdown.active .view-dropdown-menu {
+  display: block;
+}
+
+.view-dropdown-menu .dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  text-align: center;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-dropdown-menu .dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #218838;
+}
+
+.view-dropdown-menu .dropdown-item.view-homework:hover {
+  background-color: #e8f5e8;
+  color: #388e3c;
+}
+
+.view-dropdown-menu .dropdown-item.edit-homework:hover {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.view-dropdown-menu .dropdown-item.delete-homework:hover {
+  background-color: #ffebee;
+  color: #c62828;
 }
 
 .chat-container {

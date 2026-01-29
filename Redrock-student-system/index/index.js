@@ -385,7 +385,7 @@ function setupSystem() {
           console.log(result)
 
           if (result.code === 0 && result.data) {
-            // 处理作业列表数据
+            // 处理作业列表数据，如果存在则调用渲染函数渲染后端传来的作业
             if (result.data.list && Array.isArray(result.data.list)) {
               this.renderHomeworkList(result.data.list);
             }
@@ -420,6 +420,7 @@ function setupSystem() {
 
       // 渲染新卡片
       homeworkList.forEach(homework => {
+        //这里result.data.list=homeworklist=homework
         const card = this.createHomeworkCard(homework);
         grid.appendChild(card);
         this.allHomeworkCards.push(card);
@@ -434,34 +435,41 @@ function setupSystem() {
       card.className = 'homework-card';
       card.dataset.homeworkId = homework.id;
 
-      const deadline = homework.deadline ? new Date(homework.deadline) : new Date();
+      // 处理标题和描述
+      const displayTitle = homework.title || '未命名作业';
+      const displayDesc = homework.description || '无描述';
+      const displayDept = homework.department_label || homework.department || '未知部门';
       const now = new Date();
-      const isOverdue = deadline < now;
+      const deadlineDate = homework.deadline ? new Date(homework.deadline) : null;
+      const isOverdue = deadlineDate && deadlineDate < now;
+      const overdueClass = isOverdue ? ' overdue' : '';
+      const displayDeadline = deadlineDate ? this.formatDate(homework.deadline) : '未设置';
 
       card.innerHTML = `
-        <div class="homework-card-header">
-          <h5>${homework.title || '未命名作业'}</h5>
-          <span class="deadline${isOverdue ? ' overdue' : ''}">截止: ${homework.deadline ? this.formatDate(homework.deadline) : '未设置'}</span>
-        </div>
-        <div class="homework-card-body">
-          <p>${homework.description || '无描述'}</p>
-          <div class="homework-card-footer">
-            <span class="department-tag">${homework.department_label || homework.department || '未知部门'}</span>
+      <div class="homework-card-header">
+        <h5>${displayTitle}</h5>
+        <span class="deadline${overdueClass}">截止: ${displayDeadline}</span>
+      </div>
+      <div class="homework-card-body">
+        <p>${displayDesc}</p>
+        <div class="homework-card-footer">
+          <span class="department-tag">${displayDept}</span>
+          
+          <div class="view-dropdown">
             <button class="view-btn" data-homework-id="${homework.id}">查看</button>
+            <div class="view-dropdown-menu">
+               <button class="dropdown-item view-homework" data-homework-id="${homework.id}">查看作业</button>
+              <button class="dropdown-item edit-homework" data-homework-id="${homework.id}">修改作业</button>
+              <button class="dropdown-item delete-homework" data-homework-id="${homework.id}">删除作业</button>
+            </div>
           </div>
         </div>
-        <div class="homework-id hidden">${homework.id}</div>
-      `;
+      </div>
+      <div class="homework-id hidden">${homework.id}</div>
+    `;
 
-      // 添加查看按钮点击事件
-      const viewBtn = card.querySelector('.view-btn');
-      if (viewBtn) {
-        viewBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.viewHomeworkDetail(homework.id);
-        });
-      }
-
+      // 事件委托已经在setupHomeworkCardEvents中处理，不需要为每个卡片单独添加事件监听器
+      //看代码->卧槽怎么这破ai穷举啊->ai修改一下事件监听，改为事件委托->ai生成代码->看代码
       return card;
     },
 
@@ -573,10 +581,6 @@ function setupSystem() {
             </div>
             <button class="submission-btn" data-homework-id="${homework.id}">提交作业</button>
           </div>
-        </div>
-        <div class="homework-edit-section">
-          <button class="homework-edit-btn" data-homework-id="${homework.id}">修改作业</button>
-          <button class="homework-delete-btn" data-homework-id="${homework.id}">删除作业</button>
         </div>
         <div class="homework-id hidden">${homework.id}</div>
       `;
@@ -708,12 +712,61 @@ function setupSystem() {
 
       // 重新绑定查看按钮事件
       const viewBtn = card.querySelector('.view-btn');
-      if (viewBtn) {
+      const viewDropdown = card.querySelector('.view-dropdown');
+      if (viewBtn && viewDropdown) {
         const homeworkId = card.dataset.homeworkId;
         viewBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.viewHomeworkDetail(homeworkId);
+          // 关闭所有其他打开的下拉菜单
+          document.querySelectorAll('.view-dropdown').forEach(dropdown => {
+            if (dropdown !== viewDropdown) {
+              dropdown.classList.remove('active');
+            }
+          });
+          // 切换当前下拉菜单显示/隐藏
+          viewDropdown.classList.toggle('active');
         });
+
+        // 重新绑定查看作业菜单项点击事件
+        const viewHomeworkBtn = card.querySelector('.view-homework');
+        if (viewHomeworkBtn) {
+          viewHomeworkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // 关闭下拉菜单
+            viewDropdown.classList.remove('active');
+            // 显示作业详情
+            this.viewHomeworkDetail(homeworkId);
+          });
+        }
+
+        // 重新绑定修改作业菜单项点击事件
+        const editHomeworkBtn = card.querySelector('.edit-homework');
+        if (editHomeworkBtn) {
+          editHomeworkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // 关闭下拉菜单
+            viewDropdown.classList.remove('active');
+            // 填充修改作业模态框数据
+            // 注意：这里需要获取作业数据，简化处理直接显示模态框
+            const editModal = new bootstrap.Modal(document.getElementById('editHomeworkModal'));
+            editModal.show();
+          });
+        }
+
+        // 重新绑定删除作业菜单项点击事件
+        const deleteHomeworkBtn = card.querySelector('.delete-homework');
+        if (deleteHomeworkBtn) {
+          deleteHomeworkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // 关闭下拉菜单
+            viewDropdown.classList.remove('active');
+            // 存储当前要删除的作业ID
+            window.currentDeleteHomeworkId = homeworkId;
+            // 显示删除确认模态框
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteHomeworkModal'));
+            deleteModal.show();
+          });
+        }
       }
 
       // 清除保存的状态
@@ -1011,6 +1064,8 @@ function setupSystem() {
       } else if (index === 1) {
         document.getElementById('content-homework').classList.remove('hidden')
         await homeworkPagination.init()
+        // 重新设置作业卡片的事件委托
+        setupHomeworkCardEvents()
       }
     })
   })
@@ -1158,6 +1213,94 @@ function setupSystem() {
     })
   }
 
+
+  // 添加作业卡片的事件委托
+  function setupHomeworkCardEvents() {
+    console.log('setupHomeworkCardEvents called');
+    const homeworkGrid = document.getElementById('homeworkGrid');
+    if (homeworkGrid) {
+      console.log('homeworkGrid found');
+      // 点击事件委托
+      homeworkGrid.addEventListener('click', (e) => {
+        console.log('homeworkGrid click event:', e.target);
+        e.stopPropagation();
+
+        // 处理查看按钮点击
+        if (e.target.classList.contains('view-btn')) {
+          console.log('view-btn clicked');
+          const viewDropdown = e.target.closest('.view-dropdown');
+          if (viewDropdown) {
+            console.log('viewDropdown found:', viewDropdown);
+            // 关闭所有其他打开的下拉菜单
+            document.querySelectorAll('.view-dropdown').forEach(dropdown => {
+              if (dropdown !== viewDropdown) {
+                dropdown.classList.remove('active');
+              }
+            });
+            // 切换当前下拉菜单显示/隐藏
+            viewDropdown.classList.toggle('active');
+            console.log('viewDropdown active class toggled');
+          }
+        }
+
+        // 处理查看作业菜单项点击
+        else if (e.target.classList.contains('view-homework')) {
+          console.log('view-homework clicked');
+          const viewDropdown = e.target.closest('.view-dropdown');
+          if (viewDropdown) {
+            viewDropdown.classList.remove('active');
+            const homeworkCard = viewDropdown.closest('.homework-card');
+            const homeworkId = homeworkCard.dataset.homeworkId;
+            if (homeworkId) {
+              console.log('viewHomeworkDetail called with id:', homeworkId);
+              homeworkPagination.viewHomeworkDetail(homeworkId);
+            }
+          }
+        }
+
+        // 处理修改作业菜单项点击
+        else if (e.target.classList.contains('edit-homework')) {
+          console.log('edit-homework clicked');
+          const viewDropdown = e.target.closest('.view-dropdown');
+          if (viewDropdown) {
+            viewDropdown.classList.remove('active');
+            const homeworkCard = viewDropdown.closest('.homework-card');
+            const homeworkId = homeworkCard.dataset.homeworkId;
+            if (homeworkId) {
+              // 这里可以获取作业数据，然后填充模态框
+              const editModal = new bootstrap.Modal(document.getElementById('editHomeworkModal'));
+              editModal.show();
+            }
+          }
+        }
+
+        // 处理删除作业菜单项点击
+        else if (e.target.classList.contains('delete-homework')) {
+          console.log('delete-homework clicked');
+          const viewDropdown = e.target.closest('.view-dropdown');
+          if (viewDropdown) {
+            viewDropdown.classList.remove('active');
+            const homeworkCard = viewDropdown.closest('.homework-card');
+            const homeworkId = homeworkCard.dataset.homeworkId;
+            if (homeworkId) {
+              window.currentDeleteHomeworkId = homeworkId;
+              const deleteModal = new bootstrap.Modal(document.getElementById('deleteHomeworkModal'));
+              deleteModal.show();
+            }
+          }
+        }
+      });
+    }
+
+    // 点击其他区域关闭下拉菜单
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.view-dropdown')) {
+        document.querySelectorAll('.view-dropdown').forEach(dropdown => {
+          dropdown.classList.remove('active');
+        });
+      }
+    });
+  }
 
   // 聊天功能
   const chatInput = document.getElementById('chat-input')
@@ -1420,6 +1563,7 @@ function initApp() {
   setupLogin()
   setupRegister()
   setupSystem()
+
 }
 
 // 初始化应用
