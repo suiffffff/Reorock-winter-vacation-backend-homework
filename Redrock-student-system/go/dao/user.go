@@ -18,3 +18,6 @@ func FindUserName(username string) (bool, error) {
 func Login(user *models.User) error {
 	return DB.Create(user).Error
 }
+func RefreshToken() {
+	return
+}

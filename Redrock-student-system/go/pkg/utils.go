@@ -14,7 +14,6 @@ import (
 //是时候拿出我以前写（抄）的jwt了
 
 var (
-	//嗯？
 	accessSecret  = []byte("zhang_da_wo_yao_dang_xue_jie")
 	refreshSecret = []byte("xue_jie_gei_wo_ai_he_de_nai_cha")
 	issuer        = "demo.jwt.singlefile"

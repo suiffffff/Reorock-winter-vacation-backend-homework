@@ -8,5 +8,5 @@ type AddUserReq struct {
 }
 type LoginReq struct {
 	Username string `json:"username" binding:"required"`
-	Password string `json:"password" bindiing:"required"`
+	Password string `json:"password" binding:"required"`
 }
