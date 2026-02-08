@@ -14,8 +14,8 @@ const (
 	CodeSuccess = 0
 	//错误类型
 	CodeParamError = 10001
+	CodeAuthError  = 10002
 
-	CodeAuthError   = 40001
 	CodeSystemError = 50000
 )
 

@@ -21,8 +21,10 @@ type User struct {
 
 type UserToken struct {
 	ID           uint64 `gorm:"primaryKey"`
-	UserID       uint64 `gorm:"index"`
-	RefreshToken string `gorm:"type:varchar(512);unique"`
+	UserID       uint64 `gorm:"index" json:"user_id"`
+	RefreshToken string `gorm:"type:varchar(512);unique" json:"refresh_token"`
 	ExpiresAt    int64
 	Revoked      bool `gorm:"default:false"`
+
+	OldRefreshToken string `gorm:"-" json:"-"`
 }
