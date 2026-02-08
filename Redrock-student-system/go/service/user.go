@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"system/dao"
 	"system/dto"
 	"system/models"
@@ -52,7 +53,7 @@ func Login(req *dto.LoginReq) (*models.User, string, string, error) {
 	if err := dao.StoreRefreshToken(&tokenmodel); err != nil {
 		return nil, "", "", err
 	}
-	return &usermodel, accessToken, refreshToken, err
+	return &usermodel, accessToken, refreshToken, nil
 }
 func CheckRefreshToken(req *dto.CheckAndRefreshTokenReq) error {
 	tokenmodel := models.UserToken{
@@ -70,4 +71,28 @@ func RefreshToken(req *dto.CheckAndRefreshTokenReq) error {
 	}
 
 	return dao.RefreshToken(&tokenModel)
+}
+
+func GetProfile(userID uint64) (*models.User, error) {
+	usermodel := models.User{
+		ID: userID,
+	}
+	err := dao.GetProfile(&usermodel)
+	if err != nil {
+		return nil, err
+	}
+	return &usermodel, nil
+}
+func DeleteAccount(userID uint64, req dto.DeleteAccountReq) error {
+	usermodel := models.User{
+		ID: userID,
+	}
+	err := dao.GetProfile(&usermodel)
+	if err != nil {
+		return errors.New("用户不存在")
+	}
+	if usermodel.Password != pkg.Jiami(req.Password) {
+		return errors.New("密码错误")
+	}
+	return dao.DeleteAccount(&usermodel)
 }

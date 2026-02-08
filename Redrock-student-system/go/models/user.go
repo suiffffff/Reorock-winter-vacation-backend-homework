@@ -8,7 +8,7 @@ import (
 
 type User struct {
 	ID         uint64         `gorm:"primaryKey;autoIncrement;" json:"id"`
-	Username   string         `gorm:"type:varchar(50);unique;not null;" json:"username"`
+	Username   string         `gorm:"type:varchar(50);uniqueIndex:idx_username_deleted_at;not null;"`
 	Password   string         `gorm:"type:varchar(255);not null;" json:"-"`
 	Nickname   string         `gorm:"type:varchar(50);not null;" json:"nickname"`
 	Role       string         `gorm:"type:enum('student','admin');default:'student';" json:"role"`
@@ -16,7 +16,7 @@ type User struct {
 	Email      string         `gorm:"type:varchar(100);" json:"email"`
 	CreatedAt  time.Time      `gorm:"" json:"created_at"`
 	UpdatedAt  time.Time      `gorm:"" json:"updated_at"`
-	DeletedAt  gorm.DeletedAt `gorm:"" json:"-"`
+	DeletedAt  gorm.DeletedAt `gorm:"uniqueIndex:idx_username_deleted_at"`
 }
 
 type UserToken struct {

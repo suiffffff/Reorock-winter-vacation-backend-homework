@@ -14,6 +14,10 @@ type LoginReq struct {
 	Password string `json:"password" binding:"required"`
 }
 type CheckAndRefreshTokenReq struct {
-	RefreshToken    string `json:"refresh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token" binding:"required"`
+	//非前端上传
 	NewRefreshToken string `json:"new_refresh_token"`
+}
+type DeleteAccountReq struct {
+	Password string `json:"password" binding:"required"`
 }

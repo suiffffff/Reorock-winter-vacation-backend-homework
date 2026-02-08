@@ -11,6 +11,7 @@ import (
 func FindUserName(user *models.User) (bool, error) {
 	var count int64
 	username := user.Username
+	//这里因为传的是count而不是user这个类型为user的表，所以需要指名查询哪张表
 	err := DB.Model(&models.User{}).Where("username=?", username).Count(&count).Error
 	if err != nil {
 		return false, err
@@ -49,4 +50,10 @@ func RefreshToken(token *models.UserToken) error {
 			"refresh_token": token.RefreshToken,
 			"expires_at":    token.ExpiresAt,
 		}).Error
+}
+func GetProfile(user *models.User) error {
+	return DB.Where("id=?", user.ID).First(user).Error
+}
+func DeleteAccount(user *models.User) error {
+	return DB.Delete(user).Error
 }

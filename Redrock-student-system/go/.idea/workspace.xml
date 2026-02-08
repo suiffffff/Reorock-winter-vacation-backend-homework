@@ -12,6 +12,8 @@
       <change beforePath="$PROJECT_DIR$/handler/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/handler/user.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/user.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/response.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/utils.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/utils.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/router/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/router.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/service/user.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

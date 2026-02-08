@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -20,6 +21,19 @@ var (
 	accessTTL     = 15 * time.Minute
 	refreshTTL    = 7 * 24 * time.Hour
 )
+
+func GetUserID(c *gin.Context) (uint64, error) {
+	value, exists := c.Get("userID")
+	if !exists {
+		return 0, errors.New("无法获得用户信息呢，请")
+	}
+	uid, ok := value.(uint64)
+	if !ok {
+		return 0, errors.New("ID类型错误，亲")
+	}
+
+	return uid, nil
+}
 
 // 根据浅显的认知，标准md5的加密没Secret，那么密码不就相当于可以被破解的吗？
 func Jiami(Password string) string {

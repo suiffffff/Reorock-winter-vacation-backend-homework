@@ -19,10 +19,10 @@ const (
 	CodeSystemError = 50000
 )
 
-func Success(c *gin.Context, data interface{}) {
+func Success(c *gin.Context, msg string, data interface{}) {
 	c.JSON(200, Response{
 		Code:    CodeSuccess,
-		Message: "success",
+		Message: msg,
 		Data:    data,
 	})
 }

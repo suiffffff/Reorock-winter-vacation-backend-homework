@@ -10,6 +10,7 @@ type UserInfo struct {
 	Role            string `json:"role"`
 	Department      string `json:"department"`
 	DepartmentLabel string `json:"department_label"`
+	Email           string `json:"email"`
 }
 type AddUserRes struct {
 	UserInfo
@@ -23,4 +24,7 @@ type RefreshTokenRes struct {
 	Message      string `json:"message"`
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+type GetProfile struct {
+	UserInfo
 }

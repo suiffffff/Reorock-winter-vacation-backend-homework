@@ -19,9 +19,10 @@ func FindUserName(c *gin.Context) {
 		pkg.Error(c, pkg.CodeSystemError, "系统查询错误")
 		return
 	}
-	pkg.Success(c, dto.FindUserNameRes{
+	resp := dto.FindUserNameRes{
 		Exist: exists,
-	})
+	}
+	pkg.Success(c, "查询成功", resp)
 }
 func AddUser(c *gin.Context) {
 	var req dto.AddUserReq
@@ -44,7 +45,7 @@ func AddUser(c *gin.Context) {
 		Department:      user.Department,
 		DepartmentLabel: departmentlabel,
 	}
-	pkg.Success(c, resp)
+	pkg.Success(c, "注册成功", resp)
 }
 func Login(c *gin.Context) {
 	var req dto.LoginReq
@@ -57,7 +58,7 @@ func Login(c *gin.Context) {
 		pkg.Error(c, pkg.CodeSystemError, "系统查询错误")
 		return
 	}
-	departmentlabel := getDepartmentLabel(user.Department)
+	departmentLabel := getDepartmentLabel(user.Department)
 	resp := dto.LoginRes{
 		AccessToken:  at,
 		RefreshToken: rt,
@@ -67,10 +68,10 @@ func Login(c *gin.Context) {
 			NickName:        user.Nickname,
 			Role:            user.Role,
 			Department:      user.Department,
-			DepartmentLabel: departmentlabel,
+			DepartmentLabel: departmentLabel,
 		},
 	}
-	pkg.Success(c, resp)
+	pkg.Success(c, "登录成功", resp)
 }
 func RefreshToken(c *gin.Context) {
 	var req dto.CheckAndRefreshTokenReq
@@ -101,12 +102,51 @@ func RefreshToken(c *gin.Context) {
 		pkg.Error(c, pkg.CodeSystemError, "换码失败了，亲")
 		return
 	}
-	pkg.Success(c, dto.RefreshTokenRes{
-		Message:      "新码来咯",
+	resp := dto.RefreshTokenRes{
 		AccessToken:  newAccess,
 		RefreshToken: newRefresh,
-	})
-
+	}
+	pkg.Success(c, "刷新成功", resp)
+}
+func GetProfile(c *gin.Context) {
+	userID, err := pkg.GetUserID(c)
+	if err != nil {
+		pkg.ErrorWithStatus(c, 401, pkg.CodeAuthError, err.Error())
+		return
+	}
+	user, err := service.GetProfile(userID)
+	if err != nil {
+		pkg.Error(c, pkg.CodeSystemError, "查询失败")
+		return
+	}
+	departmentLabel := getDepartmentLabel(user.Department)
+	resp := dto.UserInfo{
+		ID:              user.ID,
+		UserName:        user.Username,
+		NickName:        user.Nickname,
+		Role:            user.Role,
+		Department:      user.Department,
+		DepartmentLabel: departmentLabel,
+		Email:           user.Email,
+	}
+	pkg.Success(c, "success", resp)
+}
+func DeleteAccount(c *gin.Context) {
+	var req dto.DeleteAccountReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.Error(c, pkg.CodeParamError, "参数错误")
+	}
+	userID, err := pkg.GetUserID(c)
+	if err != nil {
+		pkg.ErrorWithStatus(c, 401, pkg.CodeAuthError, err.Error())
+		return
+	}
+	err = service.DeleteAccount(userID, req)
+	if err != nil {
+		pkg.Error(c, pkg.CodeSystemError, "删除错误，多呆一会呢亲")
+		return
+	}
+	pkg.Success(c, "账号已注销", nil)
 }
 
 func getDepartmentLabel(code string) string {
