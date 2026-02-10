@@ -24,7 +24,7 @@ type HomeworkItem struct {
 	Creator         CreatorInfo `json:"creator"`
 	Deadline        time.Time   `json:"deadline"`
 	AllowLate       bool        `json:"allow_late"`
-	SubmissionCount int         `json:"submission_count"`
+	SubmissionCount uint64      `json:"submission_count"`
 }
 type FindHomeworkRes struct {
 	List     []HomeworkItem `json:"list"`

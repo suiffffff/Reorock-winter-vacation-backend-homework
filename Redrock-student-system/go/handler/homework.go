@@ -58,6 +58,14 @@ func FindHomework(c *gin.Context) {
 	var respList []dto.HomeworkItem
 	for _, item := range list {
 		deptLabel := pkg.GetDepartmentLabel(item.Department)
+		reqSub := dto.FindSubmission{
+			HomeworkID: item.ID,
+		}
+		submissionCount, err := service.FindSubmission(reqSub)
+		if err != nil {
+			pkg.Error(c, pkg.CodeSystemError, "查询错误")
+			return
+		}
 		respItem := dto.HomeworkItem{
 			ID:              item.ID,
 			Title:           item.Title,
@@ -65,7 +73,7 @@ func FindHomework(c *gin.Context) {
 			DepartmentLabel: deptLabel,
 			Deadline:        item.Deadline,
 			AllowLate:       item.AllowLate,
-			SubmissionCount: 0,
+			SubmissionCount: submissionCount.HomeworkID,
 			Creator: dto.CreatorInfo{
 				ID:       item.Creator.ID,
 				Nickname: item.Creator.Username,
