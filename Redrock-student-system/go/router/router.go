@@ -27,7 +27,13 @@ func SetUpRouter() *gin.Engine {
 		homeworkGroup.GET("", handler.FindHomework)
 		homeworkGroup.GET("/:id", handler.FindHomeworkByID)
 		homeworkGroup.PUT("/:id", handler.UpdateHomework)
-
+		homeworkGroup.DELETE("/:id", handler.DeleteHomework)
+	}
+	submissionGroup := r.Group("/submission", middleware.JWTAuthMiddleware())
+	{
+		submissionGroup.POST("", handler.SubmitHomework)
+		submissionGroup.GET("/my", handler.FindAllMySubmit)
+		submissionGroup.GET("/homework/:homework_id", handler.FindAllStudentSubmit)
 	}
 	return r
 }

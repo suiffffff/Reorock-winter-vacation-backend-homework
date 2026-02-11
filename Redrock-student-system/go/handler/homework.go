@@ -51,7 +51,7 @@ func FindHomework(c *gin.Context) {
 		pkg.Error(c, pkg.CodeParamError, "参数错误")
 		return
 	}
-	list, total, err := service.FindHomework(req)
+	list, total, err := service.FindHomework(&req)
 	if err != nil {
 		pkg.Error(c, pkg.CodeSystemError, "查询错误")
 		return
@@ -138,9 +138,16 @@ func FindHomeworkByID(c *gin.Context) {
 	pkg.Success(c, "获取成功", resp)
 }
 func UpdateHomework(c *gin.Context) {
-	var req dto.UpdateHomework
+	var req dto.UpdateHomeworkReq
+	idStr := c.Param("id")
+	homeworkID, _ := strconv.ParseUint(idStr, 10, 64)
 	if err := c.ShouldBindJSON(&req); err != nil {
 		pkg.Error(c, pkg.CodeParamError, "参数错误")
+		return
+	}
+	oldHomework, err := service.FindHomeworkByID(homeworkID)
+	if err != nil {
+		pkg.Error(c, pkg.CodeNotFound, "作业不存在")
 		return
 	}
 	userID, err := pkg.GetUserID(c)
@@ -153,9 +160,43 @@ func UpdateHomework(c *gin.Context) {
 		pkg.Error(c, pkg.CodeSystemError, "查询身份失败")
 		return
 	}
-	if user.Role != "admin" {
-		pkg.Error(c, pkg.CodeParamError, "你不是老登哦，亲")
+	if user.Role != "admin" && user.Department != oldHomework.Department {
+		pkg.Error(c, pkg.CodeNoPermission, "你无权限修改哦，亲")
 		return
 	}
-
+	resp, err := service.UpdateHomework(&req, homeworkID)
+	if err != nil {
+		pkg.Error(c, pkg.CodeSystemError, "修改失败")
+		return
+	}
+	pkg.Success(c, "修改成功", resp)
+}
+func DeleteHomework(c *gin.Context) {
+	idStr := c.Param("id")
+	homeworkID, _ := strconv.ParseUint(idStr, 10, 64)
+	oldHomework, err := service.FindHomeworkByID(homeworkID)
+	if err != nil {
+		pkg.Error(c, pkg.CodeNotFound, "作业不存在")
+		return
+	}
+	userID, err := pkg.GetUserID(c)
+	if err != nil {
+		pkg.ErrorWithStatus(c, 401, pkg.CodeAuthError, err.Error())
+		return
+	}
+	user, err := service.GetProfile(userID)
+	if err != nil {
+		pkg.Error(c, pkg.CodeSystemError, "查询身份失败")
+		return
+	}
+	if user.Role != "admin" && user.Department != oldHomework.Department {
+		pkg.Error(c, pkg.CodeNoPermission, "你无权限修改哦，亲")
+		return
+	}
+	err = service.DeleteHomework(homeworkID)
+	if err != nil {
+		pkg.Error(c, pkg.CodeSystemError, "删除失败")
+		return
+	}
+	pkg.Success(c, "删除成功", nil)
 }

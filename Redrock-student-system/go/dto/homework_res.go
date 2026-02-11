@@ -45,3 +45,8 @@ type FindHomeworkByIDRes struct {
 	SubmissionCount int64             `json:"submission_count"`
 	MySubmission    *MySubmissionInfo `json:"my_submission"`
 }
+type UpdateHomeworkRes struct {
+	ID       uint64    `json:"id"`
+	Title    string    `json:"title"`
+	Deadline time.Time `json:"deadline"`
+}

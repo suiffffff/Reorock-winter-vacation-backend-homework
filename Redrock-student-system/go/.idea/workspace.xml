@@ -10,11 +10,13 @@
       <change beforePath="$PROJECT_DIR$/dao/submission.go" beforeDir="false" afterPath="$PROJECT_DIR$/dao/submission.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dto/homework_req.go" beforeDir="false" afterPath="$PROJECT_DIR$/dto/homework_req.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dto/homework_res.go" beforeDir="false" afterPath="$PROJECT_DIR$/dto/homework_res.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dto/submission_req.go" beforeDir="false" afterPath="$PROJECT_DIR$/dto/submission_req.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dto/submission_res.go" beforeDir="false" afterPath="$PROJECT_DIR$/dto/submission_res.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handler/homework.go" beforeDir="false" afterPath="$PROJECT_DIR$/handler/homework.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/response.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/response.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/router/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/router/router.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/service/homework.go" beforeDir="false" afterPath="$PROJECT_DIR$/service/homework.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/submission.go" beforeDir="false" afterPath="$PROJECT_DIR$/service/submission.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

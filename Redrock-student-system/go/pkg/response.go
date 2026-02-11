@@ -13,10 +13,11 @@ type Response struct {
 const (
 	CodeSuccess = 0
 	//错误类型
-	CodeParamError  = 10001
-	CodeAuthError   = 10002
-	CodeNotFound    = 10004
-	CodeSystemError = 50000
+	CodeParamError   = 10001
+	CodeAuthError    = 10002
+	CodeNoPermission = 10003
+	CodeNotFound     = 10004
+	CodeSystemError  = 50000
 )
 
 func Success(c *gin.Context, msg string, data interface{}) {

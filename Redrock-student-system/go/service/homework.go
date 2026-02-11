@@ -21,7 +21,7 @@ func AddHomework(req dto.AddHomeworkReq, userID uint64) (*models.Homework, error
 	}
 	return &homeworkmodel, nil
 }
-func FindHomework(req dto.FindHomeworkReq) ([]models.Homework, int64, error) {
+func FindHomework(req *dto.FindHomeworkReq) ([]models.Homework, int64, error) {
 	homeworkmodel := models.Homework{
 		Department: req.Department,
 	}
@@ -41,6 +41,19 @@ func FindHomeworkByID(homeworkID uint64) (*models.Homework, error) {
 	}
 	return &homeworkmodel, nil
 }
-func UpdateHomework() {
-
+func UpdateHomework(req *dto.UpdateHomeworkReq, homeworkID uint64) (*dto.UpdateHomeworkRes, error) {
+	homeworkmodel := models.Homework{
+		ID:          homeworkID,
+		Title:       req.Title,
+		Description: req.Description,
+		Deadline:    req.Deadline,
+		AllowLate:   req.AllowLate,
+	}
+	return dao.UpdateHomework(&homeworkmodel)
+}
+func DeleteHomework(homeworkID uint64) error {
+	homeworkmodel := models.Homework{
+		ID: homeworkID,
+	}
+	return dao.DeleteHomework(&homeworkmodel)
 }
